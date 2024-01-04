@@ -128,7 +128,7 @@ public class BookRegistry {
         if (!path.exists()) {
             path.mkdir();
         }
-        
+
         Collection<File> files = FileUtils.listFiles(path, new String[] { "json" }, true);
         for (File file : files) {
             try {
@@ -141,29 +141,40 @@ public class BookRegistry {
         }
     }
 
+
     public static void registerModInJar(String modid, File jar) {
-        try {
-            ZipFile zipfile = new ZipFile(jar);
-            Enumeration enumeration = zipfile.entries();
+        try (ZipFile zipfile = new ZipFile(jar)) {
+            Enumeration<? extends ZipEntry> enumeration = zipfile.entries();
+
             while (enumeration.hasMoreElements()) {
-                ZipEntry zipentry = (ZipEntry) enumeration.nextElement();
+                ZipEntry zipentry = enumeration.nextElement();
                 String fileName = zipentry.getName();
                 Path path1 = Paths.get(fileName);
                 Path path2 = Paths.get("assets", modid, "books");
-
                 if (path1.startsWith(path2)) {
-                    try {
-                        String json = IOUtils.toString(zipfile.getInputStream(zipentry));
-                        BookData data = BookRegistry.register(GsonClientHelper.getGson().fromJson(json, BookData.class));
-                        ELogger.log(Level.INFO, "Successfully loaded in the book with the unique identifier: " + data.uniqueName + " for the language: " + data.language);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    optimizationsAndTweaks$processBookEntry(zipfile, zipentry);
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-            zipfile.close();
-        } catch (Exception e) {}
+
+    private static void optimizationsAndTweaks$processBookEntry(ZipFile zipfile, ZipEntry zipentry) {
+        try {
+            String json = IOUtils.toString(zipfile.getInputStream(zipentry));
+            BookRegistry.BookData data = register(GsonClientHelper.getGson().fromJson(json, BookRegistry.BookData.class));
+            ELogger.log(Level.INFO, "Successfully loaded in the book with the unique identifier: " + data.uniqueName + " for the language: " + data.language);
+        } catch (Exception var10) {
+            var10.printStackTrace();
+            System.err.println("JSON Content causing the issue:");
+            try {
+                System.err.println(IOUtils.toString(zipfile.getInputStream(zipentry)));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static final HashMap<ItemStack, String> stackToIdentifier = new HashMap();
@@ -238,7 +249,7 @@ public class BookRegistry {
     }
 
     public static BookData getData(String unique) {
-        String language = ClientHelper.getLang();       
+        String language = ClientHelper.getLang();
         HashMap<String, BookData> data = books.get(language);
         BookData book = null;
         if (data != null) book = data.get(unique);
