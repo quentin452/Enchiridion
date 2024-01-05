@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import com.google.gson.JsonSyntaxException;
 import joshie.enchiridion.ELogger;
 import joshie.enchiridion.Enchiridion;
 import joshie.enchiridion.helpers.ClientHelper;
@@ -35,7 +36,7 @@ import cpw.mods.fml.relauncher.Side;
 public class BookRegistry {
     public static class BookData {
         @Expose
-        public ArrayList<DesignerCanvas> book;
+        public List<DesignerCanvas> book;
         @Expose
         public String uniqueName;
         @Expose
@@ -74,7 +75,7 @@ public class BookRegistry {
             this.displayName = display;
             this.information = info;
             this.color = color;
-            this.book = new ArrayList();
+            this.book = new ArrayList<>();
             this.book.add(new DesignerCanvas());
             this.language = ClientHelper.getLang();
         }
@@ -84,7 +85,7 @@ public class BookRegistry {
         }
 
         public BookData(BookData data) {
-            this.book = new ArrayList(data.book);
+            this.book = new ArrayList<>(data.book);
             this.uniqueName = data.uniqueName;
             this.color = data.color;
             this.showBackground = data.showBackground;
@@ -114,9 +115,9 @@ public class BookRegistry {
 
         Collection<File> files = FileUtils.listFiles(directory, new String[] { "json" }, true);
         for (File file : files) {
-            //Read all the json books from this directory
             try {
                 BookRegistry.register(GsonClientHelper.getGson().fromJson(FileUtils.readFileToString(file), BookData.class));
+            } catch (JsonSyntaxException | IllegalStateException ignored) {
             } catch (Exception e) {
                 BookRegistry.register(new BookData(file.getName().replace(".json", "")));
             }
@@ -152,7 +153,7 @@ public class BookRegistry {
                 Path path1 = Paths.get(fileName);
                 Path path2 = Paths.get("assets", modid, "books");
                 if (path1.startsWith(path2)) {
-                    optimizationsAndTweaks$processBookEntry(zipfile, zipentry);
+                    processBookEntry(zipfile, zipentry);
                 }
             }
         } catch (Exception e) {
@@ -161,33 +162,24 @@ public class BookRegistry {
     }
 
 
-    private static void optimizationsAndTweaks$processBookEntry(ZipFile zipfile, ZipEntry zipentry) {
+    private static void processBookEntry(ZipFile zipfile, ZipEntry zipentry) {
         try {
             String json = IOUtils.toString(zipfile.getInputStream(zipentry));
             BookRegistry.BookData data = register(GsonClientHelper.getGson().fromJson(json, BookRegistry.BookData.class));
             ELogger.log(Level.INFO, "Successfully loaded in the book with the unique identifier: " + data.uniqueName + " for the language: " + data.language);
-        } catch (Exception var10) {
-            var10.printStackTrace();
-            System.err.println("JSON Content causing the issue:");
-            try {
-                System.err.println(IOUtils.toString(zipfile.getInputStream(zipentry)));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        } catch (Exception ignored) {
         }
     }
 
-    private static final HashMap<ItemStack, String> stackToIdentifier = new HashMap();
-    private static final HashMap<String, HashMap<String, BookData>> books = new HashMap();
+    private static final HashMap<ItemStack, String> stackToIdentifier = new HashMap<>();
+    private static final HashMap<String, HashMap<String, BookData>> books = new HashMap<>();
     private static int lastID = 1;
 
     private static BookData getDataInFirstLanguage(String identifier) {
-        Iterator it = Minecraft.getMinecraft().getLanguageManager().getLanguages().iterator();
-        while (it.hasNext()) {
-            String code = ((Language) it.next()).getLanguageCode();
+        for (Object o : Minecraft.getMinecraft().getLanguageManager().getLanguages()) {
+            String code = ((Language) o).getLanguageCode();
             HashMap<String, BookData> data = books.get(code);
-            if (data != null) {
-                if (data.get(identifier) != null) return data.get(identifier);
+            if (data != null && (data.get(identifier) != null)) {return data.get(identifier);
             }
         }
 
@@ -195,14 +187,12 @@ public class BookRegistry {
     }
 
     private static void markAllLanguagesAsNoCreative(String identifier) {
-        Iterator it = Minecraft.getMinecraft().getLanguageManager().getLanguages().iterator();
-        while (it.hasNext()) {
-            String code = ((Language) it.next()).getLanguageCode();
+        for (Object o : Minecraft.getMinecraft().getLanguageManager().getLanguages()) {
+            String code = ((Language) o).getLanguageCode();
             HashMap<String, BookData> data = books.get(code);
-            if (data != null) {
-                if (data.get(identifier) != null) {
+            if (data != null && (data.get(identifier) != null)) {
                     data.get(identifier).displayInCreative = false;
-                }
+
             }
         }
     }
@@ -220,8 +210,7 @@ public class BookRegistry {
 
     public static String getID(ItemStack stack) {
         if (stack == null || !stack.hasTagCompound()) return null;
-        String identifier = stack.stackTagCompound.getString("identifier");
-        return identifier;
+        return stack.stackTagCompound.getString("identifier");
     }
 
     public static boolean opensGui(ItemStack stack) {
@@ -259,9 +248,9 @@ public class BookRegistry {
 
     public static BookData register(BookData data) {
         String language = data.language;
-        if (language == null || language.equals("")) language = ClientHelper.getLang();
+        if (language == null || language.isEmpty()) language = ClientHelper.getLang();
         HashMap<String, BookData> map = books.get(language);
-        if (map == null) map = new HashMap();
+        if (map == null) map = new HashMap<>();
         if (map.get(data.uniqueName) != null) return map.get(data.uniqueName);
         data = new BookData(data);
         map.put(data.uniqueName, data);
@@ -270,7 +259,7 @@ public class BookRegistry {
     }
 
     public static Set<String> getIDs() {
-        HashSet<String> data = new HashSet();
+        HashSet<String> data = new HashSet<>();
         for (HashMap<String, BookData> map : books.values()) {
             data.addAll(map.keySet());
         }

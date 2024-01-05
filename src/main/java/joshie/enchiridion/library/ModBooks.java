@@ -1,7 +1,9 @@
 package joshie.enchiridion.library;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import com.google.gson.annotations.SerializedName;
 import joshie.enchiridion.helpers.StackHelper;
 import net.minecraft.item.ItemStack;
 
@@ -10,42 +12,37 @@ import com.google.gson.annotations.Expose;
 import cpw.mods.fml.common.Loader;
 
 public class ModBooks {
-    @Expose
-    public ArrayList<ModBookData> books = new ArrayList();
+    private final ArrayList<ModBookData> books = new ArrayList<>();
 
-    public ModBooks addBook(ModBookData book) {
+    public void addBook(ModBookData book) {
         books.add(book);
-        return this;
+    }
+
+    public List<ModBookData> getBooks() {
+        return books;
     }
 
     public static class ModBookData {
-        @Expose
-        public String mod;
-        @Expose
-        public String stack;
-        @Expose
-        public String type;
-        @Expose
+        private String mod;
+        private String stack;
+        private String type;
         public boolean free;
-        @Expose
         public boolean onCrafted;
-        @Expose
+        @SerializedName("openGuiClass")
         public String openGuiClass;
-        @Expose
+        @SerializedName("openGuiNBT")
         public String openGuiNBT;
-        @Expose
         public boolean pickUp;
-        @Expose
         public String overwrite;
+        public ItemStack item; //If this isn't null, then this book is actively installed
 
-        public ItemStack item; //If this isn't null then this book is actively installed
 
         public ModBookData() {}
 
-        public ModBookData(String mod, String stack, String register) {
+        public ModBookData(String mod, String stack, String type) {
             this.mod = mod;
             this.stack = stack;
-            this.type = register;
+            this.type = type;
             this.free = true;
             this.onCrafted = false;
             this.openGuiClass = "";
@@ -94,7 +91,7 @@ public class ModBooks {
     }
 
     /** Register books to the bookhandler registry, Called client side whenever a server
-     * sends a new list of books, this is jsut so we know how they should be handled **/
+     * sends a new list of books; this is jsut, so we know how they should be handled **/
     public void registerBooks() {
         for (ModBookData book : books) {
             if (book.item == null) continue;

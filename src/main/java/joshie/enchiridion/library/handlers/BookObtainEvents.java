@@ -27,7 +27,7 @@ public class BookObtainEvents {
     public void openGui(GuiOpenEvent event) {
         if (event.gui == null || LibraryHelper.modBooks == null) return;
         String clazz = event.gui.getClass().getName();
-        for (ModBookData data : LibraryHelper.modBooks.books) {
+        for (ModBookData data : LibraryHelper.modBooks.getBooks()) {
             if (data.item == null || data.free == true || data.openGuiClass.equals("") || hasBook(data.item, data.openGuiNBT)) continue;
             if (data.openGuiClass.equals(clazz)) {
                 ItemStack held = ClientHelper.getPlayer().getCurrentEquippedItem();
@@ -51,7 +51,7 @@ public class BookObtainEvents {
     public void onCrafting(ItemCraftedEvent event) {
         ItemStack stack = event.crafting;
         if (stack != null && LibraryHelper.modBooks != null) {
-            for (ModBookData data : LibraryHelper.modBooks.books) {
+            for (ModBookData data : LibraryHelper.modBooks.getBooks()) {
                 if (data.item == null || data.free == true || data.onCrafted == false || hasBook(data.item, "")) continue;
                 if (data.item.isItemEqual(stack)) {
                     ItemStack overwrites = null;
@@ -73,7 +73,7 @@ public class BookObtainEvents {
     public void onItemPickUp(EntityItemPickupEvent event) {
         if (event.item == null || LibraryHelper.modBooks == null) return;
         ItemStack stack = event.item.getEntityItem();
-        for (ModBookData data : LibraryHelper.modBooks.books) {
+        for (ModBookData data : LibraryHelper.modBooks.getBooks()) {
             if (data.item == null || data.free == true || data.pickUp == false || hasBook(data.item, "")) continue;
             if (data.item.isItemEqual(stack)) {
                 ItemStack overwrites = null;

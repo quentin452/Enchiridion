@@ -45,7 +45,7 @@ public class WikiPage extends WikiPart {
         String lang = ClientHelper.getLang();
 
         String dir = getData().getSaveDirectory();
-        if (dir.equals("")) {
+        if (dir.isEmpty()) {
             return Enchiridion.root + File.separator + "wiki" + File.separator + mod.getKey() + File.separator + tab.getKey() + File.separator + cat.getKey() + File.separator + page.getKey() + File.separator + lang + ".json";
         } else {
             String root = Enchiridion.root.getParentFile().getParentFile().getParentFile().toString();
@@ -121,21 +121,20 @@ public class WikiPage extends WikiPart {
         for (int i = (elements.size() - 1); i >= 0; i--) {
             start();
             resetZ();
-            (elements.get(i)).setWiki(WikiHelper.gui).display((int) getData().getScroll(), isEditMode);
+            (elements.get(i)).setWiki(WikiHelper.gui).display(getData().getScroll(), isEditMode);
             end();
         }
     }
 
     public void keyTyped(char character, int key) {
-        if (isEditMode()) {
-            if (selected != null) {
+        if (isEditMode() && (selected != null)) {
                 selected.keyTyped(character, key);
                 if (ClientHelper.isShiftPressed() && key == 211) {
                     selected.onDeselected();
                     remove(selected);
                     selected = null;
                 }
-            }
+
         }
 
         switch (key) {
@@ -203,10 +202,8 @@ public class WikiPage extends WikiPart {
 
     /** Causes stuff to follow the cursor **/
     public void follow(int x, int y) {
-        if (isEditMode()) {
-            if (selected != null) {
+        if (isEditMode() && (selected != null)) {
                 selected.follow(x, y);
-            }
         }
     }
 

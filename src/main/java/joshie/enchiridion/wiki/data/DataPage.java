@@ -12,7 +12,7 @@ import com.google.gson.annotations.Expose;
 public class DataPage extends Data {
     @Expose
     //Full list of elements
-    private ArrayList<Element> components = new ArrayList();
+    private ArrayList<Element> components = new ArrayList<>();
     @Expose
     //The maximum Scroll
     private int scrollMax = -1;
@@ -44,7 +44,7 @@ public class DataPage extends Data {
     public DataPage refreshY() {
         maxY = 0;
         for (Element component : components) {
-            int y = (int) ((component.y + component.height));
+            int y = (component.y + component.height);
             if (y > maxY) {
                 maxY = y;
             }
